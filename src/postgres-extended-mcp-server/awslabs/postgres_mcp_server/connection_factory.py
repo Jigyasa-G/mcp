@@ -14,23 +14,23 @@
 
 """Factory for creating database connections."""
 
-from typing import Dict, Any, Optional, Union
 from loguru import logger
+from typing import Any, Dict
 
 
 class ConnectionFactory:
     """Factory to create the appropriate connection based on provided parameters."""
-    
+
     @staticmethod
     async def create_connection(config: Dict[str, Any]):
         """Create a connection based on the provided configuration.
-        
+
         Args:
             config: Configuration with endpoint and/or resource_arn
-            
+
         Returns:
             The appropriate connection object
-            
+
         Raises:
             ValueError: If insufficient connection parameters are provided
         """
@@ -45,7 +45,7 @@ class ConnectionFactory:
         readonly = config.get('readonly', True)
         min_connections = config.get('min_connections', 1)
         max_connections = config.get('max_connections', 10)
-        
+
         # Decision logic for connection type
         # For direct connection, we need:
         # - secret_arn and region
@@ -55,7 +55,7 @@ class ConnectionFactory:
             try:
                 # Try direct connection with psycopg3
                 from .psycopg_connection import PostgresConfig, PostgresDirectConnection
-                
+
                 connection_config = PostgresConfig(
                     reader_endpoint=reader_endpoint or "",  # Use empty string if None
                     writer_endpoint=writer_endpoint or "",  # Use empty string if None
@@ -67,14 +67,14 @@ class ConnectionFactory:
                     min_connections=min_connections,
                     max_connections=max_connections
                 )
-                
+
                 connection = PostgresDirectConnection(connection_config)
                 await connection.initialize()
-                logger.info(f'Successfully connected to PostgreSQL using psycopg3')
+                logger.info('Successfully connected to PostgreSQL using psycopg3')
                 return connection
             except Exception as e:
                 logger.warning(f'Failed to connect using psycopg3: {str(e)}')
-                
+
                 # If direct connection fails and resource_arn is provided, fall back to RDS Data API
                 if resource_arn:
                     logger.info('Falling back to RDS Data API')

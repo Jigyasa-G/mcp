@@ -18,16 +18,16 @@ import argparse
 import asyncio
 import boto3
 import sys
+from awslabs.postgres_mcp_server.connection_factory import ConnectionFactory
 from awslabs.postgres_mcp_server.mutable_sql_detector import (
     check_sql_injection_risk,
     detect_mutating_keywords,
 )
-from awslabs.postgres_mcp_server.connection_factory import ConnectionFactory
-from botocore.exceptions import BotoCoreError, ClientError
+from botocore.exceptions import ClientError
 from loguru import logger
 from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
-from typing import Annotated, Any, Dict, List, Optional, Union
+from typing import Annotated, Any, Dict, List, Optional
 
 
 client_error_code_key = 'run_query ClientError code'
@@ -202,7 +202,7 @@ async def run_query(
         logger.error('Database connection is None')
         await ctx.error('Database connection is not available')
         return [{'error': 'Database connection is not available'}]
-        
+
     if db_connection is not None and db_connection.readonly_query:
         matches = detect_mutating_keywords(sql)
         if (bool)(matches):
@@ -232,7 +232,7 @@ async def run_query(
                 response = await db_connection.execute_readonly_query(sql, 'mcp_session', query_parameters)
             else:
                 response = await db_connection.execute_query(sql, 'mcp_session', query_parameters)
-            
+
             # The response is already in the correct format
             logger.success('run_query successfully executed query using psycopg3:{}', sql)
             return response
@@ -247,7 +247,7 @@ async def run_query(
                     logger.error('Database connection is None')
                     await ctx.error('Database connection is not available')
                     return [{'error': 'Database connection is not available'}]
-                    
+
                 execute_params = {
                     'resourceArn': db_connection.cluster_arn,
                     'secretArn': db_connection.secret_arn,
@@ -305,7 +305,7 @@ async def get_table_schema(
         except Exception as e:
             logger.exception(f"Error getting mock direct response: {str(e)}")
             # Fall back to regular query if mock response fails
-    
+
     sql = """
         SELECT
             a.attname AS column_name,
@@ -340,10 +340,10 @@ def execute_readonly_query(
     """
     if db_connection is None:
         raise ValueError("Database connection is None")
-        
+
     if not hasattr(db_connection, 'data_client') or db_connection.data_client is None:
         raise ValueError("Database data_client is None")
-        
+
     tx_id = ''
     try:
         # Begin read-only transaction
@@ -410,12 +410,12 @@ def main():
     parser.add_argument(
         '--region', help='AWS region for RDS Data API'
     )
-    
+
     # Direct connection parameters
     parser.add_argument('--reader_endpoint', help='PostgreSQL reader endpoint')
     parser.add_argument('--writer_endpoint', help='PostgreSQL writer endpoint')
     parser.add_argument('--port', type=int, default=5432, help='PostgreSQL port')
-    
+
     # Common parameters
     parser.add_argument('--database', required=True, help='Database name')
     parser.add_argument(
@@ -423,31 +423,31 @@ def main():
     )
     parser.add_argument('--min_connections', type=int, default=1, help='Minimum connections in pool')
     parser.add_argument('--max_connections', type=int, default=10, help='Maximum connections in pool')
-    
+
     args = parser.parse_args()
-    
+
     # Convert readonly string to boolean
     readonly = args.readonly.lower() == 'true'
-    
+
     # Validate arguments
     if not args.database:
         logger.error('Database name is required')
         sys.exit(1)
-        
+
     # Validate arguments based on readonly flag
     if readonly:
-        if not ((args.resource_arn and args.secret_arn and args.region) or 
+        if not ((args.resource_arn and args.secret_arn and args.region) or
                 (args.reader_endpoint and args.secret_arn and args.region)):
             logger.error('For readonly operations, provide either RDS Data API parameters (resource_arn, secret_arn, region) or '
                         'direct connection parameters (reader_endpoint, secret_arn, region)')
             sys.exit(1)
     else:
-        if not ((args.resource_arn and args.secret_arn and args.region) or 
+        if not ((args.resource_arn and args.secret_arn and args.region) or
                 (args.writer_endpoint and args.secret_arn and args.region)):
             logger.error('For write operations, provide either RDS Data API parameters (resource_arn, secret_arn, region) or '
                         'direct connection parameters (writer_endpoint, secret_arn, region)')
             sys.exit(1)
-    
+
     # Log connection parameters
     if args.reader_endpoint or args.writer_endpoint:
         logger.info(
@@ -483,7 +483,7 @@ def main():
             'min_connections': args.min_connections,
             'max_connections': args.max_connections
         }
-        
+
         # Initialize the connection
         asyncio.run(DBConnectionSingleton.initialize(**connection_params))
     except Exception as e:

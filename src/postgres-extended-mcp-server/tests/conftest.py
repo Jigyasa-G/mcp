@@ -185,7 +185,7 @@ class Mock_DBConnection:
             Mock_boto3_client: The mock boto3 client
         """
         return self._data_client
-        
+
     def add_mock_direct_response(self, response):
         """Add a mock response to be returned by direct connection methods.
 
@@ -193,7 +193,7 @@ class Mock_DBConnection:
             response: The mock response to add
         """
         self._direct_responses.append(response)
-        
+
     def get_mock_direct_response(self):
         """Get the next mock direct response.
 

@@ -478,11 +478,11 @@ def validate_normal_query_response(column_records):
 async def test_run_query_well_formatted_response():
     """Test that run_query correctly handles a well-formatted response from RDS Data API."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=True)
@@ -512,11 +512,11 @@ async def test_run_query_well_formatted_response():
 async def test_run_query_safe_read_queries_on_redonly_settings():
     """Test that run_query accepts safe readonly queries when readonly setting is true."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=True)
@@ -546,11 +546,11 @@ async def test_run_query_safe_read_queries_on_redonly_settings():
 async def test_run_query_risky_queries_without_parameters():
     """Test that run_query rejects queries with potentially risky parameters regardless of readonly setting."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
 
@@ -579,11 +579,11 @@ async def test_run_query_risky_queries_without_parameters():
 async def test_run_query_throw_client_error():
     """Test that run_query properly handles client errors from RDS Data API by mokcing the RDA API exception."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=True, error=MockException.Client)
@@ -602,11 +602,11 @@ async def test_run_query_throw_client_error():
 async def test_run_query_throw_unexpected_error():
     """Test that run_query properly handles unexpected exception by mokcing the exception."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=True, error=MockException.Unexpected)
@@ -625,11 +625,11 @@ async def test_run_query_throw_unexpected_error():
 async def test_run_query_write_queries_on_readonly_setting():
     """Test that run_query rejects write queries when in read-only mode."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
 
@@ -654,11 +654,11 @@ async def test_run_query_write_queries_on_write_allowed_setting():
     #    Set readonly to be false and send write query
     #    Expect no error is returned for every test query
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=False, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=False,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=False)
@@ -686,15 +686,15 @@ async def test_run_query_write_queries_on_write_allowed_setting():
 async def test_get_table_schema():
     """Test test_get_table_schema call in a positive case."""
     await DBConnectionSingleton.initialize(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=False, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=False,
         is_test=True
     )
     mock_db_connection = Mock_DBConnection(readonly=False)
-    
+
     # Add a mock response for the direct connection method
     # This will be used if the connection is detected as a direct connection
     mock_response = []
@@ -705,26 +705,26 @@ async def test_get_table_schema():
             'column_comment': f'Comment for {col_name}'
         })
     mock_db_connection.add_mock_direct_response(mock_response)  # type: ignore
-    
+
     # Add responses for the RDS Data API method
     # These will be used if the connection is detected as an RDS Data API connection
     mock_db_connection.data_client.add_mock_response({'transactionId': 'mock-tx-id'})  # begin_transaction
     mock_db_connection.data_client.add_mock_response({})  # SET TRANSACTION READ ONLY
-    
+
     # Create a mock response for the table schema query
     schema_columns = ['column_name', 'data_type', 'column_comment']
     schema_rows = []
     for col_name in MOCK_COLUMNS:
         schema_rows.append([col_name, 'text', f'Comment for {col_name}'])
-    
+
     schema_response = mock_execute_statement_response(
         columns=schema_columns,
         rows=schema_rows
     )
-    
+
     mock_db_connection.data_client.add_mock_response(schema_response)  # actual query
     mock_db_connection.data_client.add_mock_response({'transactionStatus': 'committed'})  # commit_transaction
-    
+
     # Set the mock connection in the singleton
     DBConnectionSingleton._instance._connection = mock_db_connection  # type: ignore
 
@@ -781,7 +781,7 @@ def test_main_with_valid_parameters(monkeypatch, capsys):
 
     # Mock the initialize method to avoid the coroutine warning
     original_initialize = DBConnectionSingleton.initialize
-    
+
     async def mock_async_initialize(*args, **kwargs):
         # Create the instance directly
         DBConnectionSingleton._instance = DBConnectionSingleton(**kwargs)
@@ -790,10 +790,10 @@ def test_main_with_valid_parameters(monkeypatch, capsys):
         mock_db_connection.data_client.add_mock_response(get_mock_normal_query_response())
         DBConnectionSingleton._instance._connection = mock_db_connection #type: ignore
         return None
-        
+
     # Replace the async initialize with our mocked version
     monkeypatch.setattr(DBConnectionSingleton, 'initialize', mock_async_initialize)
-    
+
     # Mock asyncio.run to handle the async initialize call
     original_run = asyncio.run
     def mock_run(coro):
@@ -802,9 +802,8 @@ def test_main_with_valid_parameters(monkeypatch, capsys):
     monkeypatch.setattr(asyncio, 'run', mock_run)
 
     # This test of main() will succeed in parsing parameters and create connection object.
-    # Use a variable to avoid the unused coroutine warning
-    result = main()  # type: ignore
-    
+    main()  # type: ignore
+
     # Restore the original methods
     monkeypatch.setattr(DBConnectionSingleton, 'initialize', original_initialize)
     monkeypatch.setattr(asyncio, 'run', original_run)
@@ -844,13 +843,13 @@ def test_main_with_invalid_parameters(monkeypatch, capsys):
 
     # Mock the initialize method to raise an exception
     original_initialize = DBConnectionSingleton.initialize
-    
+
     async def mock_async_initialize(*args, **kwargs):
         raise Exception("Invalid credentials")
-        
+
     # Replace the async initialize with our mocked version
     monkeypatch.setattr(DBConnectionSingleton, 'initialize', mock_async_initialize)
-    
+
     # Mock asyncio.run to handle the async initialize call
     original_run = asyncio.run
     def mock_run(coro):
@@ -861,7 +860,7 @@ def test_main_with_invalid_parameters(monkeypatch, capsys):
     with pytest.raises(SystemExit) as excinfo:
         main()
     assert excinfo.value.code == 1
-    
+
     # Restore the original methods
     monkeypatch.setattr(DBConnectionSingleton, 'initialize', original_initialize)
     monkeypatch.setattr(asyncio, 'run', original_run)
@@ -871,27 +870,35 @@ if __name__ == '__main__':
     # Note: Using the synchronous version here since this is in the main block
     # Create a mock initialize function that doesn't return a coroutine
     async def mock_async_initialize(**kwargs):
+        """Mock implementation of DBConnectionSingleton.initialize for testing.
+
+        Args:
+            **kwargs: Connection parameters that will be passed to DBConnectionSingleton
+
+        Returns:
+            None
+        """
         DBConnectionSingleton._instance = DBConnectionSingleton(**kwargs)
         mock_db_connection = Mock_DBConnection(readonly=True)
         DBConnectionSingleton._instance._connection = mock_db_connection  # type: ignore
         return None
-        
+
     # Store the original initialize method
     original_initialize = DBConnectionSingleton.initialize
-    
+
     # Initialize the connection using the async function directly
     # This avoids the type error by not replacing the method on the class
     mock_db_connection = Mock_DBConnection(readonly=True)
     DBConnectionSingleton._instance = DBConnectionSingleton(
-        resource_arn='mock', 
-        secret_arn='mock', 
-        database='mock', 
-        region='mock', 
-        readonly=True, 
+        resource_arn='mock',
+        secret_arn='mock',
+        database='mock',
+        region='mock',
+        readonly=True,
         is_test=True
     )
     DBConnectionSingleton._instance._connection = mock_db_connection  # type: ignore
-    
+
     # Run the tests
     asyncio.run(test_run_query_well_formatted_response())
     asyncio.run(test_run_query_safe_read_queries_on_redonly_settings())

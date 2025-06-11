@@ -14,14 +14,14 @@
 
 """PostgreSQL direct connection using psycopg3."""
 
-from contextlib import asynccontextmanager
-from dataclasses import dataclass
-from typing import Optional, Dict, Any, AsyncGenerator, List
-from psycopg_pool import AsyncConnectionPool  # type: ignore
-from loguru import logger
 import asyncio
 import boto3
 import json
+from contextlib import asynccontextmanager
+from dataclasses import dataclass
+from loguru import logger
+from psycopg_pool import AsyncConnectionPool  # type: ignore
+from typing import Any, AsyncGenerator, Dict, List, Optional
 
 
 @dataclass
@@ -55,10 +55,10 @@ class PostgresDirectConnection:
 
     async def _get_credentials(self) -> Dict[str, str]:
         """Get credentials from AWS Secrets Manager.
-        
+
         Returns:
             Dictionary containing username and password
-            
+
         Raises:
             Exception: If the secret cannot be retrieved
         """
@@ -67,15 +67,15 @@ class PostgresDirectConnection:
             response = client.get_secret_value(SecretId=self.config.secret_arn)
             secret_string = response['SecretString']
             secret = json.loads(secret_string)
-            
+
             username = secret.get('username')
             password = secret.get('password')
-            
+
             if not username or not password:
                 raise ValueError('Secret does not contain username or password')
-                
+
             self._credentials = {'username': username, 'password': password}
-            
+
         return self._credentials
 
     async def initialize(self) -> None:
@@ -87,7 +87,7 @@ class PostgresDirectConnection:
         try:
             # Get credentials from Secrets Manager
             credentials = await self._get_credentials()
-            
+
             # Choose endpoint based on readonly flag
             endpoint = None
             if self.config.readonly:
@@ -100,7 +100,7 @@ class PostgresDirectConnection:
                     raise ValueError('Writer endpoint is required for write operations')
                 endpoint = self.config.writer_endpoint
                 logger.info(f'Initializing connection pool to writer endpoint: {endpoint}')
-            
+
             self._pool = AsyncConnectionPool(
                 conninfo=self._build_conninfo(endpoint, credentials),
                 min_size=self.config.min_connections,
@@ -136,7 +136,7 @@ class PostgresDirectConnection:
             'password': credentials['password'],
             'connect_timeout': self.config.connect_timeout
         }
-        
+
         return ' '.join(f'{k}={v}' for k, v in params.items())
 
     async def _configure_connection(self, conn) -> None:
@@ -182,7 +182,7 @@ class PostgresDirectConnection:
         """
         if self._pool is None:
             raise RuntimeError("Connection pool is not initialized")
-            
+
         if session_id not in self._session_stats:
             self._session_stats[session_id] = {'queries': 0, 'last_used': None}
 
@@ -191,7 +191,7 @@ class PostgresDirectConnection:
             pool = self._pool
             if pool is None:
                 raise RuntimeError("Connection pool is not initialized")
-                
+
             async with pool.connection() as conn:
                 # Set session-specific parameters
                 async with conn.cursor() as cur:
@@ -200,15 +200,15 @@ class PostgresDirectConnection:
 
                 self._session_stats[session_id]['queries'] += 1
                 self._session_stats[session_id]['last_used'] = asyncio.get_event_loop().time()
-                
+
                 yield conn
         except Exception as e:
             logger.error(f'Error in session {session_id}: {str(e)}')
             raise
 
     async def execute_query(
-        self, 
-        query: str, 
+        self,
+        query: str,
         session_id: str,
         parameters: Optional[List[Dict[str, Any]]] = None
     ) -> list:
@@ -234,7 +234,7 @@ class PostgresDirectConnection:
                         await cur.execute(query, psycopg_params)
                     else:
                         await cur.execute(query)
-                    
+
                     if cur.description:
                         columns = [desc.name for desc in cur.description]
                         rows = await cur.fetchall()
@@ -257,7 +257,7 @@ class PostgresDirectConnection:
         for param in rds_parameters:
             name = param['name']
             value_dict = param['value']
-            
+
             # Extract the value based on its type
             for key in ('stringValue', 'longValue', 'doubleValue', 'booleanValue', 'isNull'):
                 if key in value_dict:
@@ -266,12 +266,12 @@ class PostgresDirectConnection:
                     else:
                         params[name] = value_dict[key]
                     break
-        
+
         return params
 
     async def execute_readonly_query(
-        self, 
-        query: str, 
+        self,
+        query: str,
         session_id: str,
         parameters: Optional[List[Dict[str, Any]]] = None
     ) -> list:
@@ -294,14 +294,14 @@ class PostgresDirectConnection:
                 # Set transaction to read-only
                 async with conn.cursor() as cur:
                     await cur.execute('SET TRANSACTION READ ONLY')
-                    
+
                     # Execute the query
                     if parameters:
                         psycopg_params = self._convert_parameters(parameters)
                         await cur.execute(query, psycopg_params)
                     else:
                         await cur.execute(query)
-                    
+
                     # Format and return results
                     if cur.description:
                         columns = [desc.name for desc in cur.description]
