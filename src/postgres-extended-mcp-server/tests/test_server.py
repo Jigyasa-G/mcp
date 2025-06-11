@@ -331,7 +331,7 @@ RISKY_QUERY_WITH_PARAMETERS = [
     {
         'sql': 'SELECT name FROM products WHERE category = :cat',
         'parameters': [
-            {'name': 'cat', 'value': {'stringValue': "' UNION SELECT password FROM users --"}}
+            {'name': 'cat', 'value': {'stringValue': "' UNION SELECT password FROM users --"}}  # pragma: allowlist secret
         ],
     },
     {
@@ -342,9 +342,9 @@ RISKY_QUERY_WITH_PARAMETERS = [
 
 RISKY_QUERY_WITHOUT_PARAMETERS = [
     "SELECT * FROM users WHERE username = '' OR 1=1",
-    "SELECT * FROM users WHERE username = '' -- and password = 'x'",
+    "SELECT * FROM users WHERE username = '' -- and password = 'x'",  # pragma: allowlist secret
     'SELECT * FROM users; DROP TABLE users;',
-    'SELECT id FROM users WHERE id = -1 UNION SELECT password FROM admin_users',
+    'SELECT id FROM users WHERE id = -1 UNION SELECT password FROM admin_users',  # pragma: allowlist secret
     "SELECT * FROM products WHERE id = (SELECT id FROM users WHERE username = '' OR '1'='1')",
     'SELECT * FROM users ORDER BY username; DROP TABLE users;',
     "WITH x AS (SELECT '--') DELETE FROM test",
