@@ -60,7 +60,7 @@ class ConnectionFactory:
                     reader_endpoint=reader_endpoint or "",  # Use empty string if None
                     writer_endpoint=writer_endpoint or "",  # Use empty string if None
                     port=port,
-                    database=database,
+                    database=database or "",  # Use empty string if None
                     secret_arn=secret_arn,
                     region=region,
                     readonly=readonly,

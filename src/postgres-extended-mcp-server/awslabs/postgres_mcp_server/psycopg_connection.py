@@ -180,6 +180,9 @@ class PostgresDirectConnection:
         Raises:
             RuntimeError: If the pool hasn't been initialized
         """
+        if self._pool is None:
+            raise RuntimeError("Connection pool is not initialized")
+            
         if session_id not in self._session_stats:
             self._session_stats[session_id] = {'queries': 0, 'last_used': None}
 

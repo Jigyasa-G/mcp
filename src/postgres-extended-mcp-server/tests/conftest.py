@@ -174,6 +174,8 @@ class Mock_DBConnection:
         self.readonly = readonly
         self.error = error
         self._data_client = Mock_boto3_client(error)
+        self._direct_responses = []
+        self._current_direct_response_index = 0
 
     @property
     def data_client(self):
@@ -183,6 +185,29 @@ class Mock_DBConnection:
             Mock_boto3_client: The mock boto3 client
         """
         return self._data_client
+        
+    def add_mock_direct_response(self, response):
+        """Add a mock response to be returned by direct connection methods.
+
+        Args:
+            response: The mock response to add
+        """
+        self._direct_responses.append(response)
+        
+    def get_mock_direct_response(self):
+        """Get the next mock direct response.
+
+        Returns:
+            The next mock response
+
+        Raises:
+            Exception: If there are no more mock responses
+        """
+        if self._current_direct_response_index < len(self._direct_responses):
+            response = self._direct_responses[self._current_direct_response_index]
+            self._current_direct_response_index += 1
+            return response
+        raise Exception('Mock_DBConnection.get_mock_direct_response mock response out of bound')
 
     @property
     def readonly_query(self):
