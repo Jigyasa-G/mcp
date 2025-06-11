@@ -513,7 +513,7 @@ async def test_run_query_safe_read_queries_on_redonly_settings():
     """Test that run_query accepts safe readonly queries when readonly setting is true."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
@@ -547,7 +547,7 @@ async def test_run_query_risky_queries_without_parameters():
     """Test that run_query rejects queries with potentially risky parameters regardless of readonly setting."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
@@ -580,7 +580,7 @@ async def test_run_query_throw_client_error():
     """Test that run_query properly handles client errors from RDS Data API by mokcing the RDA API exception."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
@@ -603,7 +603,7 @@ async def test_run_query_throw_unexpected_error():
     """Test that run_query properly handles unexpected exception by mokcing the exception."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
@@ -626,7 +626,7 @@ async def test_run_query_write_queries_on_readonly_setting():
     """Test that run_query rejects write queries when in read-only mode."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
@@ -655,7 +655,7 @@ async def test_run_query_write_queries_on_write_allowed_setting():
     #    Expect no error is returned for every test query
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=False,
@@ -687,7 +687,7 @@ async def test_get_table_schema():
     """Test test_get_table_schema call in a positive case."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=False,
@@ -891,7 +891,7 @@ if __name__ == '__main__':
     mock_db_connection = Mock_DBConnection(readonly=True)
     DBConnectionSingleton._instance = DBConnectionSingleton(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock',# pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
