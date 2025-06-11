@@ -293,7 +293,7 @@ async def get_table_schema(
 
     # Check if we have a direct connection
     db_connection = DBConnectionSingleton.get().db_connection
-    if hasattr(db_connection, 'get_mock_direct_response'):
+    if db_connection is not None and hasattr(db_connection, 'get_mock_direct_response'):
         # This is a mock connection with a direct response
         try:
             return db_connection.get_mock_direct_response()
