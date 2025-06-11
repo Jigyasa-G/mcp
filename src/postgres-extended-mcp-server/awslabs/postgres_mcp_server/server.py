@@ -203,7 +203,7 @@ async def run_query(
         await ctx.error('Database connection is not available')
         return [{'error': 'Database connection is not available'}]
         
-    if db_connection.readonly_query:
+    if db_connection is not None and db_connection.readonly_query:
         matches = detect_mutating_keywords(sql)
         if (bool)(matches):
             logger.info(
@@ -223,10 +223,10 @@ async def run_query(
         return [{'error': query_injection_risk_key}]
 
     try:
-        logger.info(f'run_query: readonly:{db_connection.readonly_query}, SQL:{sql}')
+        logger.info(f'run_query: readonly:{db_connection.readonly_query if db_connection is not None else "None"}, SQL:{sql}')
 
         # Check if the connection is a direct psycopg3 connection
-        if hasattr(db_connection, 'execute_query'):
+        if db_connection is not None and hasattr(db_connection, 'execute_query'):
             # Use the psycopg3 connection's execute_query method
             if db_connection.readonly_query:
                 response = await db_connection.execute_readonly_query(sql, 'mcp_session', query_parameters)
@@ -238,11 +238,16 @@ async def run_query(
             return response
         else:
             # Use the RDS Data API connection
-            if db_connection.readonly_query:
+            if db_connection is not None and db_connection.readonly_query:
                 response = await asyncio.to_thread(
                     execute_readonly_query, db_connection, sql, query_parameters
                 )
             else:
+                if db_connection is None:
+                    logger.error('Database connection is None')
+                    await ctx.error('Database connection is not available')
+                    return [{'error': 'Database connection is not available'}]
+                    
                 execute_params = {
                     'resourceArn': db_connection.cluster_arn,
                     'secretArn': db_connection.secret_arn,
@@ -333,6 +338,12 @@ def execute_readonly_query(
     Returns:
         List of dictionary that contains query response rows
     """
+    if db_connection is None:
+        raise ValueError("Database connection is None")
+        
+    if not hasattr(db_connection, 'data_client') or db_connection.data_client is None:
+        raise ValueError("Database data_client is None")
+        
     tx_id = ''
     try:
         # Begin read-only transaction
@@ -373,7 +384,7 @@ def execute_readonly_query(
         )
         return result
     except Exception as e:
-        if tx_id:
+        if tx_id and db_connection is not None and hasattr(db_connection, 'data_client') and db_connection.data_client is not None:
             db_connection.data_client.rollback_transaction(
                 resourceArn=db_connection.cluster_arn,
                 secretArn=db_connection.secret_arn,

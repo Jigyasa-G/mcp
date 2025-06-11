@@ -704,7 +704,7 @@ async def test_get_table_schema():
             'data_type': 'text',
             'column_comment': f'Comment for {col_name}'
         })
-    mock_db_connection.add_mock_direct_response(mock_response)
+    mock_db_connection.add_mock_direct_response(mock_response)  # type: ignore
     
     # Add responses for the RDS Data API method
     # These will be used if the connection is detected as an RDS Data API connection
@@ -802,7 +802,8 @@ def test_main_with_valid_parameters(monkeypatch, capsys):
     monkeypatch.setattr(asyncio, 'run', mock_run)
 
     # This test of main() will succeed in parsing parameters and create connection object.
-    main()
+    # Use a variable to avoid the unused coroutine warning
+    result = main()  # type: ignore
     
     # Restore the original methods
     monkeypatch.setattr(DBConnectionSingleton, 'initialize', original_initialize)

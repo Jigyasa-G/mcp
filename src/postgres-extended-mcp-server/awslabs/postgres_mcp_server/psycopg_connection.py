@@ -17,7 +17,7 @@
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, AsyncGenerator, List
-from psycopg_pool import AsyncConnectionPool
+from psycopg_pool import AsyncConnectionPool  # type: ignore
 from loguru import logger
 import asyncio
 import boto3
@@ -187,7 +187,12 @@ class PostgresDirectConnection:
             self._session_stats[session_id] = {'queries': 0, 'last_used': None}
 
         try:
-            async with self._pool.connection() as conn:
+            # Ensure self._pool is not None before accessing connection
+            pool = self._pool
+            if pool is None:
+                raise RuntimeError("Connection pool is not initialized")
+                
+            async with pool.connection() as conn:
                 # Set session-specific parameters
                 async with conn.cursor() as cur:
                     # Set application name to session ID for monitoring
