@@ -479,7 +479,7 @@ async def test_run_query_well_formatted_response():
     """Test that run_query correctly handles a well-formatted response from RDS Data API."""
     await DBConnectionSingleton.initialize(
         resource_arn='mock',
-        secret_arn='mock',
+        secret_arn='mock', # pragma: allowlist secret
         database='mock',
         region='mock',
         readonly=True,
